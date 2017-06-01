@@ -2035,6 +2035,7 @@ public class ALongHourAndAHalf extends JFrame
                 if (!listChoice.isSelectionEmpty())
                 {
                     nextStage = GameStage.WHERE_TO_GO_CHOSE;
+                    passTime();
                     break;
                 }
             break;
@@ -2062,15 +2063,94 @@ public class ALongHourAndAHalf extends JFrame
                 {
                     case 0:
                         nextStage = GOING_TO_MALL;
+                        setText("You decided to go to mall.",
+                                "Probably, there will be a restroom.");
                         break;
                     case 1:
                         nextStage = GOING_TO_BUS_STOP;
+                        setText("You decided to go to the bus stop.",
+                                "I'll try to hold it till home.");
                         break;
                     case 2:
                         nextStage = GOING_TO_HOME;
+                        setText("You decided to go to home on foot.",
+                                "I may get stuck on the bus stop for a lot.");
                         break;
                 }
                 
+            case GOING_TO_MALL:
+                passTime((byte)5);
+                if(bladder<80)
+                    //There are public toilets
+                    if(generator.nextBoolean())
+                        //There's a queue
+                        if(generator.nextInt(100)<30)
+                            setText("You came to the mall without any problems.",
+                                    "You've found a restroom, but",
+                                    "there's a line. You've to wait!");
+                        //No queue
+                        else
+                            if(generator.nextInt(100)<30)
+                            setText("You came to the mall without any problems.",
+                                    "You've found a restroom.",
+                                    "");//TODO
+                    //No public toilet
+                    else
+                        if(generator.nextInt(100)<15)
+                        {
+                            setLinesAsDialogue(3,4);
+                            setText("You came to the mall without any problems.",
+                                    "Strangely, you couldn't find a public restroom, but you've found a restroom for employees.",
+                                    "Can I use this restroom, please?",
+                                    "Yes, you can.",
+                                    "");//TODO
+                        }
+                        else
+                        {
+                            setLinesAsDialogue(3,4,5,6);
+                            setText("You came to the mall without any problems.",
+                                    "Strangely, you couldn't find a public restroom, but you've found a restroom for employees.",
+                                    "Can I use this restroom, please?",
+                                    "Sorry, I can't let you in. This restroom is for employees only.",
+                                    "Please...",
+                                    "No.",
+                                    "Damn it...");
+                        }
+                else
+                    if(generator.nextBoolean())
+                        //There's a queue
+                        if(generator.nextInt(100)<30)
+                            setText("You finally came to the mall. Ah, that was the hard road...",
+                                    "You've found a restroom, but",
+                                    "there's a line. You've to wait!");
+                        //No queue
+                        else
+                            if(generator.nextInt(100)<30)
+                            setText("You finally came to the mall. Ah, that was the hard road...",
+                                    "You've found a restroom.",
+                                    "");//TODO
+                    //No public toilet
+                    else
+                        if(generator.nextInt(100)<15)
+                        {
+                            setLinesAsDialogue(3,4);
+                            setText("You finally came to the mall. Ah, that was the hard road...",
+                                    "Strangely, you couldn't find a public restroom, but you've found a restroom for employees.",
+                                    "Can I use this restroom, please?",
+                                    "Yes, you can.",
+                                    "");//TODO
+                        }
+                        else
+                        {
+                            setLinesAsDialogue(3,4,5,6);
+                            setText("You finally came to the mall. Ah, that was the hard road...",
+                                    "Strangely, you couldn't find a public restroom, but you've found a restroom for employees.",
+                                    "Can I use this restroom, please?",
+                                    "Sorry, I can't let you in. This restroom is for employees only.",
+                                    "Please...",
+                                    "No.",
+                                    "Damn it... I can't hold it!!");
+                        }
             default:
                 setText("Error parsing button. Next text is unavailable, text #" + nextStage);
                 break;
@@ -2189,7 +2269,6 @@ public class ALongHourAndAHalf extends JFrame
             }
         return false;
     }
-
 
     public void emptyBladder()
     {

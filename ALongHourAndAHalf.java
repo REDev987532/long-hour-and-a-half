@@ -2080,77 +2080,45 @@ public class ALongHourAndAHalf extends JFrame
                 
             case GOING_TO_MALL:
                 passTime((byte)5);
-                if(bladder<80)
-                    //There are public toilets
-                    if(generator.nextBoolean())
-                        //There's a queue
-                        if(generator.nextInt(100)<30)
-                            setText("You came to the mall without any problems.",
-                                    "You've found a restroom, but",
-                                    "there's a line. You've to wait!");
-                        //No queue
-                        else
-                            if(generator.nextInt(100)<30)
-                            setText("You came to the mall without any problems.",
-                                    "You've found a restroom.",
-                                    "");//TODO
-                    //No public toilet
-                    else
-                        if(generator.nextInt(100)<15)
-                        {
-                            setLinesAsDialogue(3,4);
-                            setText("You came to the mall without any problems.",
-                                    "Strangely, you couldn't find a public restroom, but you've found a restroom for employees.",
-                                    "Can I use this restroom, please?",
-                                    "Yes, you can.",
-                                    "");//TODO
-                        }
-                        else
-                        {
-                            setLinesAsDialogue(3,4,5,6);
-                            setText("You came to the mall without any problems.",
-                                    "Strangely, you couldn't find a public restroom, but you've found a restroom for employees.",
-                                    "Can I use this restroom, please?",
-                                    "Sorry, I can't let you in. This restroom is for employees only.",
-                                    "Please...",
-                                    "No.",
-                                    "Damn it...");
-                        }
-                else
-                    if(generator.nextBoolean())
-                        //There's a queue
-                        if(generator.nextInt(100)<30)
-                            setText("You finally came to the mall. Ah, that was the hard road...",
-                                    "You've found a restroom, but",
-                                    "there's a line. You've to wait!");
-                        //No queue
-                        else
-                            if(generator.nextInt(100)<30)
-                            setText("You finally came to the mall. Ah, that was the hard road...",
-                                    "You've found a restroom.",
-                                    "");//TODO
-                    //No public toilet
-                    else
-                        if(generator.nextInt(100)<15)
-                        {
-                            setLinesAsDialogue(3,4);
-                            setText("You finally came to the mall. Ah, that was the hard road...",
-                                    "Strangely, you couldn't find a public restroom, but you've found a restroom for employees.",
-                                    "Can I use this restroom, please?",
-                                    "Yes, you can.",
-                                    "");//TODO
-                        }
-                        else
-                        {
-                            setLinesAsDialogue(3,4,5,6);
-                            setText("You finally came to the mall. Ah, that was the hard road...",
-                                    "Strangely, you couldn't find a public restroom, but you've found a restroom for employees.",
-                                    "Can I use this restroom, please?",
-                                    "Sorry, I can't let you in. This restroom is for employees only.",
-                                    "Please...",
-                                    "No.",
-                                    "Damn it... I can't hold it!!");
-                        }
+                
+                //That tricky code saves a lot of space
+                boolean publicRestroomFound = generator.nextBoolean();
+                boolean queue = generator.nextInt(100)<30;
+                boolean allowedToUseEmployeeRestroom = generator.nextInt(100)<15;
+                
+                setText((bladder<80)?"You came to the mall without any problems.":"You finally made it to the mall. Ah, that was the hard road...",
+                        
+                    publicRestroomFound?
+                        "You've found a public restroom."
+                        :
+                        "Strangely, you couldn't find a public restroom, but you've found a restroom for employees.",
+                        
+                    publicRestroomFound?
+                        queue?
+                            "There's a line! You've to wait!"
+                            :
+                            ""
+                        :
+                        allowedToUseEmployeeRestroom?
+                            "<i>Can I use this restroom, please?</i>\n<i>Yes, you can.</i>"
+                            :
+                            "<i>Can I use this restroom, please?</i>\n<i>Sorry, I can't let you in. This restroom is for employees only.</i>",
+                        
+                    (publicRestroomFound&&!queue)||(!publicRestroomFound&&allowedToUseEmployeeRestroom)?
+                        !lower.getName().equals("No outerwear")?
+                            !undies.getName().equals("No underwear")?
+                                "You enter it, pulled down your " + lower.insert() + " and " + undies.insert() + ",\nwearily flop down on the toilet and start peeing."
+                                :
+                                "You enter it, pulled down your " + lower.insert() + ",\nwearily flop down on the toilet and start peeing."
+                        :
+                            !undies.getName().equals("No underwear")?
+                                "You enter it, pulled down your " + undies.insert() + ",\nwearily flop down on the toilet and start peeing."
+                                :
+                                "You enter it, wearily flop down on the toilet and start peeing."
+                    :
+                    "Damn it..." 
+                );
+                
             default:
                 setText("Error parsing button. Next text is unavailable, text #" + nextStage);
                 break;
@@ -2526,7 +2494,8 @@ public class ALongHourAndAHalf extends JFrame
         BACK_TO_SCHOOL_BUS_STOP, //Waiting for a bus to school (3 - 15 minutes)
         IN_BUS, //In a bus (3 minutes, 5% chance to get stuck in traffic (5 - 25 minutes)
         END_GAME, //Good ending, showing score
-        WHERE_TO_GO_CHOSE
+        WHERE_TO_GO_CHOSE,
+        MALL_TOILET //Peeing in mall
     }
 
     enum Gender

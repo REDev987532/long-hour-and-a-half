@@ -1,9 +1,7 @@
 /*
-*ALongHourAndAHalf Vers. 1.2
-*Date of Version: 5/27/2017
-*Time of Version: 22:08
+*ALongHourAndAHalf Vers. 1.3
 *
-*Dev: Rosalie Elodie
+*Dev: Rosalie Elodie, JavaBird
 *
 *Version History:
 *0.1: Default game mechanics shown, non interactable. No playability, no customization. Not all game mechanics even implemented, purely a showcase program.
@@ -18,6 +16,10 @@
 *    New game options frame
 *    Even more clothes
 *    Cleaned and documented code a bit
+*1.3 Bug fixes
+*    Interface improvements
+*    Game text refining
+*    Extended game
 *
 *
 *A Long Hour and a Half (ALongHourAndAHalf) is a game where
@@ -41,31 +43,32 @@
 *Other options, which may be added in later or not, are these:
 *Extended game ("Can [name] get through an entire school day AND make it home?") (probably will be in the next update)
 *Better Dialog (lines made by someone that's not me >_< )
+*Story editor (players can create their own stories and play them)
+*Wear editor (players can create their own wear types and use it in A Long hour and a Half and custom stories
+*Save/load game states
+*Character presets
 *
 *
-*If you have any questions, or want to shove code in her face,
-*be sure to send them to Rosalie at her following email address:
-*rosalieelodiedev@gmail.com
-*(without caps)
-*RosalieElodieDev@gmail.com
-*(with caps)
+*If you have any questions, bugs or suggestions, 
+*create an issue or a pull request on GitHub:
+*https://github.com/javabird25/long-hour-and-a-half/
 *
-*She also goes by the terrible username "Justice" on Omo.org
-*(omorashi.org)
-*and you're free to contact her there!
-*(If you already have an account there, it's much more preferable ^^; )
-*
+*Developers' usernames table
+*   Code documentation  |GitHub                                      |Omorashi.org
+*   --------------------|-------------------------------------------|---------------------------------------------------------------------
+*   Rosalie Elodie      |?                                           |Justice (https://www.omorashi.org/profile/25796-justice/)
+*   JavaBird            |javabird25 (https://github.com/javabird25)  |FromRUSForum (https://www.omorashi.org/profile/89693-fromrusforum/)
+*   Anna May            |AnnahMay (https://github.com/AnnahMay)      |Anna May (https://www.omorashi.org/profile/10087-anna-may/)
+*   notwillnotcast      |?                                           |notwillnotcast (https://www.omorashi.org/profile/14935-notwillnotcast/)
+*   
 *FINAL NOTE: While this is created by Rosalie Dev, she allows it to be posted
 *freely, so long as she's creditted. She also states that this program is
 *ABSOLUTELY FREE, not to mention she hopes you enjoy ^_^
 *
 *
 *DEV NOTES: Look for bugs, there is always a bunch of them
-*Bugs:
-*
- */
-//name used for copying/pasting purposes (to keep from typing over and over again)
-//ALongHourAndAHalf
+*/
+
 package omo;
 
 import java.awt.Color;
@@ -392,6 +395,9 @@ public class ALongHourAndAHalf extends JFrame
     private final JLabel lblLower;
     private final JLabel lblSphPower;
     private final JLabel lblDryness;
+    private int busTime;
+    private boolean traffic;
+    private boolean schoolOver;
     
     /**
      * Launch the application.
@@ -2063,16 +2069,19 @@ public class ALongHourAndAHalf extends JFrame
                 {
                     case 0:
                         nextStage = GOING_TO_MALL;
+                        setLinesAsDialogue(2);
                         setText("You decided to go to mall.",
                                 "Probably, there will be a restroom.");
                         break;
                     case 1:
                         nextStage = GOING_TO_BUS_STOP;
+                        setLinesAsDialogue(2);
                         setText("You decided to go to the bus stop.",
                                 "I'll try to hold it till home.");
                         break;
                     case 2:
                         nextStage = GOING_TO_HOME;
+                        setLinesAsDialogue(2);
                         setText("You decided to go to home on foot.",
                                 "I may get stuck on the bus stop for a lot.");
                         break;
@@ -2118,6 +2127,155 @@ public class ALongHourAndAHalf extends JFrame
                     :
                     "Damn it..." 
                 );
+                
+            if((publicRestroomFound&&!queue)||(!publicRestroomFound&&allowedToUseEmployeeRestroom))
+                nextStage = GameStage.MALL_TOILET;
+            else if(publicRestroomFound&&queue)
+            {
+                passTime();
+                nextStage = GameStage.MALL_TOILET;
+            }
+            else if(!publicRestroomFound&&!allowedToUseEmployeeRestroom)
+                nextStage = GameStage.WHERE_TO_GO_MALL;
+        break;
+        
+        case WHERE_TO_GO_MALL:
+            setText("Why do there is no public restrooms!?",
+                    "Anyway, you've to go somewhere else.");
+            actionList.clear();
+            actionList.add("Bus stop (1 minute)");
+            actionList.add("Directly to home (15 minutes)");
+            
+            if (!listChoice.isSelectionEmpty())
+            {
+                nextStage = GameStage.WHERE_TO_GO_MALL_CHOSE;
+            }
+        break;
+            
+        case WHERE_TO_GO_MALL_CHOSE:
+            lblChoice.setVisible(false);
+                listScroller.setVisible(false);
+
+//                actionName = (String) listChoice.getSelectedValue();
+//                if (actionName.equals("[Unavailable]"))
+//                {
+//                    listChoice.clearSelection();
+//                    setText("You've spent a few minutes doing nothing.");
+//                    break;
+//                }
+
+                actionNum = listChoice.getSelectedIndex();
+
+                lblChoice.setVisible(false);
+                listScroller.setVisible(false);
+
+                listChoice.clearSelection();
+
+                switch (actionNum)
+                {
+                    case 0:
+                        nextStage = GOING_TO_BUS_STOP;
+                        setLinesAsDialogue(2);
+                        setText("You decided to go to the bus stop.",
+                                "I'll try to hold it till home.");
+                    case 1:
+                        nextStage = GOING_TO_HOME;
+                        setLinesAsDialogue(2);
+                        setText("You decided to go to home on foot.",
+                                "I may get stuck on the bus stop for a lot.");
+                }
+            break;
+            
+            case GOING_TO_BUS_STOP:
+                busTime = generator.nextInt(17)+3;
+                passTime((byte)1);
+                setText("You came to the bus stop,",
+                        "Sat on the bench and started waiting for a bus.");
+                nextStage = BUS_STOP;
+            break;
+            
+            case BUS_STOP:
+                if(busTime>0)
+                {
+                    setText("Sitting on the bench,",
+                            "You're waiting the bus to come.");
+                    passTime();
+                    busTime -= 3;
+                }
+                else
+                {
+                    setText("Finally, you see the bus coming to the stop.",
+                            "You enter it.");
+                    nextStage = IN_BUS;
+                    
+                    //Stuck in traffic
+                    if(generator.nextInt(100)<10)
+                    {
+                        busTime = generator.nextInt(20)+5;
+                        traffic = true;
+                    }
+                    else //No traffic
+                    {
+                        passTime((byte)5);
+                        
+                        //Forgot keys in school
+                        if(generator.nextInt(100)<7)
+                            nextStage = HOME_LOST_KEYS;
+                        else
+                            nextStage = HOME;
+                    }
+                }
+                
+            case IN_BUS:
+                if(busTime>0)
+                {
+                    setText("It seems that bus is stuck in traffic.",
+                            "No, please... Why me?..");
+                    passTime();
+                    busTime -= 3;
+                }
+                else
+                {
+                    setText("Finally, bus managed to arrive to your stop.");
+                    //Forgot keys in school
+                        if(generator.nextInt(100)<7)
+                            nextStage = HOME_LOST_KEYS;
+                        else
+                            nextStage = HOME;
+                }
+                
+            case HOME:
+                setText("You run to your house, open the door with keys,",
+                        "Run to the bathroom,",
+                        "Flop to the toilet and start peeing.",
+                        "You're so happy that you made it to home with dry clothes.");
+                nextStage = END_GAME;
+            break;
+            
+            case HOME_LOST_KEYS:
+                setLinesAsDialogue(4);
+                setText("You run to your house.",
+                        "You're trying to find the keys, but",
+                        "You just remembered that you forgot them in the school.",
+                        "Nooooooo...");
+                passTime();
+                nextStage = WHERE_TO_GO_BACK;
+            
+            case WHERE_TO_GO_BACK:
+                lblChoice.setText("How to go to school?");
+                listScroller.setVisible(true);
+                lblChoice.setVisible(true);
+
+                actionList.clear();
+                actionList.add("To bus stop (1 minute)");
+                actionList.add("On foot (15 minutes)");
+                
+                if (!listChoice.isSelectionEmpty())
+                {
+                    nextStage = GameStage.WHERE_TO_GO_CHOSE;
+                    passTime();
+                    break;
+                }
                 
             default:
                 setText("Error parsing button. Next text is unavailable, text #" + nextStage);
@@ -2194,16 +2352,10 @@ public class ALongHourAndAHalf extends JFrame
                     emptyBelly();
                 }
         }
+       
         
-        //Sphincter power rounding
-//        BigDecimal bd = new BigDecimal(sphincterPower);
-//        bd = bd.setScale(1, RoundingMode.HALF_UP);
-//        sphincterPower = bd.floatValue();
         lblSphPower.setText("Pee holding ability: " + Math.round(sphincterPower) + "%");
-        //Dryness rounding
-//        bd = new BigDecimal(dryness);
-//        bd = bd.setScale(1, RoundingMode.HALF_UP);
-//        dryness = bd.floatValue();
+        
         lblDryness.setText("Clothes dryness: " + Math.round(dryness));
     }
 
@@ -2323,18 +2475,18 @@ public class ALongHourAndAHalf extends JFrame
             if (dryness < -20)
             {
                 if (lower.getName().equals("No outerwear") && undies.getName().equals("No underwear"))
-                    if (cornered)
+                    if (cornered||schoolOver)
                     {
                         setText("You see the puddle on the floor under you! You're peeing!",
                                 "It's too big...");
                         nextStage = ACCIDENT;
-                        handleNextClicked();
+//                        handleNextClicked();
                     } else
                     {
                         setText("You see the puddle on your chair! You're peeing!",
                                 "It's too big...");
                         nextStage = ACCIDENT;
-                        handleNextClicked();
+//                        handleNextClicked();
                     }
                 else
                     if (!lower.getName().equals("No outerwear"))
@@ -2342,14 +2494,14 @@ public class ALongHourAndAHalf extends JFrame
                         setText("You see the wet spot on your " + lower.insert() + "!",
                                 "It's too big...");
                         nextStage = ACCIDENT;
-                        handleNextClicked();
+//                        handleNextClicked();
                     } else
                         if (!undies.getName().equals("No underwear"))
                         {
                             setText("You see the wet spot on your " + undies.insert() + "!",
                                     "It's too big...");
                             nextStage = ACCIDENT;
-                            handleNextClicked();
+//                            handleNextClicked();
                         }
             }
         }
@@ -2462,18 +2614,12 @@ public class ALongHourAndAHalf extends JFrame
         CLASS_OVER, //School, class over
         AFTER_CLASS, //School, writing lines if character has failed to ask teacher to go to the restroom for three times
         ACCIDENT, //School, leaking
-        ACCIDENT_STREET, //Street, leaking
-        ACCIDENT_BUS, //Bus, leaking
-        ACCIDENT_HOME, //Home, leaking
         GIVE_UP,
         WET, //School, wetting
-        WET_STREET, //Street, wetting
-        WET_BUS, //Bus, wetting
-        WET_HOME, //Home, wetting
         POST_WET, //School, being made fun of
-        POST_BUS, //Bus, passangers around can't understand how did character pee in a bus
-        POST_STREET, //Street, 
-        GAME_OVER,
+        POST_WET_BUS, //Bus, passangers around can't understand how did character pee in a bus
+        POST_WET_STREET, //Street, passersby confusedly look at character
+        GAME_OVER, //Wetting
         SURPRISE, //Hidden gameplay after passing through the class in the hardcore mode
         SURPRISE_2, 
         SURPRISE_ACCIDENT,
@@ -2495,7 +2641,11 @@ public class ALongHourAndAHalf extends JFrame
         IN_BUS, //In a bus (3 minutes, 5% chance to get stuck in traffic (5 - 25 minutes)
         END_GAME, //Good ending, showing score
         WHERE_TO_GO_CHOSE,
-        MALL_TOILET //Peeing in mall
+        MALL_TOILET, //Peeing in mall
+        WHERE_TO_GO_MALL, //Failed to pee in mall, going to somewhere else
+        WHERE_TO_GO_MALL_CHOSE,
+        BUS_STOP, //Waiting for a bus for 3 - 20 minutes
+        WHERE_TO_GO_BACK //Going back to school to take the keys
     }
 
     enum Gender

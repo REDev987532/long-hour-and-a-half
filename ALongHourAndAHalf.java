@@ -399,6 +399,8 @@ public class ALongHourAndAHalf extends JFrame
     private boolean traffic;
     private boolean schoolOver;
     
+    private final boolean EXTENDED_GAME_DEBUG = true; 
+    
     /**
      * Launch the application.
      *
@@ -872,7 +874,10 @@ public class ALongHourAndAHalf extends JFrame
                 setText("Subconsciously rubbing your thighs together, you feel the uncomfortable feeling of",
                         "your bladder filling as the liquids you drank earlier start to make their way down.");
                 passTime();
-                nextStage = ASK_ACTION;
+                if(!EXTENDED_GAME_DEBUG)
+                    nextStage = ASK_ACTION;
+                else
+                    nextStage = WHERE_TO_GO;
                 score("Embarassment at start - " + incon + " pts", '+', embarassment);
                 break;
 
@@ -2026,9 +2031,9 @@ public class ALongHourAndAHalf extends JFrame
             case WHERE_TO_GO:
                 setLinesAsDialogue(4);
                 setText("Lesson is over, and you're running to the restroom as fast as you can.",
-                       "Trying to get into the restroom,",
-                       "You find with fear that restroom is locked for some reason.",
-                       "Damnit... Seems that I have to pee somewhere else...");
+                        "Trying to get into the restroom,",
+                        "You find with fear that restroom is locked for some reason.",
+                        "Damnit... Seems that I have to pee somewhere else...");
                 lblChoice.setText("Where to go?");
                 listScroller.setVisible(true);
                 lblChoice.setVisible(true);
@@ -2037,14 +2042,15 @@ public class ALongHourAndAHalf extends JFrame
                 actionList.add("Mall (5 minutes)");
                 actionList.add("Bus stop (1 minute)");
                 actionList.add("Directly to home (15 minutes)");
+                listChoice.setListData(actionList.toArray());
                 
-                if (!listChoice.isSelectionEmpty())
-                {
+//                if (!listChoice.isSelectionEmpty())
+//                {
                     nextStage = GameStage.WHERE_TO_GO_CHOSE;
                     passTime();
                     break;
-                }
-            break;
+//                }
+//            break;
                
             case WHERE_TO_GO_CHOSE:
                 lblChoice.setVisible(false);
@@ -2129,11 +2135,11 @@ public class ALongHourAndAHalf extends JFrame
                 );
                 
             if((publicRestroomFound&&!queue)||(!publicRestroomFound&&allowedToUseEmployeeRestroom))
-                nextStage = GameStage.MALL_TOILET;
+                nextStage = GameStage.END_GAME;
             else if(publicRestroomFound&&queue)
             {
                 passTime();
-                nextStage = GameStage.MALL_TOILET;
+                nextStage = GameStage.END_GAME;
             }
             else if(!publicRestroomFound&&!allowedToUseEmployeeRestroom)
                 nextStage = GameStage.WHERE_TO_GO_MALL;
@@ -2142,9 +2148,13 @@ public class ALongHourAndAHalf extends JFrame
         case WHERE_TO_GO_MALL:
             setText("Why do there is no public restrooms!?",
                     "Anyway, you've to go somewhere else.");
+            
             actionList.clear();
             actionList.add("Bus stop (1 minute)");
             actionList.add("Directly to home (15 minutes)");
+            listChoice.setListData(actionList.toArray());
+            listScroller.setVisible(true);
+            lblChoice.setVisible(true);
             
             if (!listChoice.isSelectionEmpty())
             {
@@ -2225,7 +2235,8 @@ public class ALongHourAndAHalf extends JFrame
                             nextStage = HOME;
                     }
                 }
-                
+            break;
+            
             case IN_BUS:
                 if(busTime>0)
                 {
@@ -2238,10 +2249,10 @@ public class ALongHourAndAHalf extends JFrame
                 {
                     setText("Finally, bus managed to arrive to your stop.");
                     //Forgot keys in school
-                        if(generator.nextInt(100)<7)
-                            nextStage = HOME_LOST_KEYS;
-                        else
-                            nextStage = HOME;
+                    if(generator.nextInt(100)<7)
+                        nextStage = HOME_LOST_KEYS;
+                    else
+                        nextStage = HOME;
                 }
                 
             case HOME:
@@ -2262,7 +2273,7 @@ public class ALongHourAndAHalf extends JFrame
                 nextStage = WHERE_TO_GO_BACK;
             
             case WHERE_TO_GO_BACK:
-                lblChoice.setText("How to go to school?");
+                lblChoice.setText("How to get to school?");
                 listScroller.setVisible(true);
                 lblChoice.setVisible(true);
 
@@ -2272,11 +2283,77 @@ public class ALongHourAndAHalf extends JFrame
                 
                 if (!listChoice.isSelectionEmpty())
                 {
-                    nextStage = GameStage.WHERE_TO_GO_CHOSE;
+                    nextStage = GameStage.WHERE_TO_GO_BACK_CHOSE;
                     passTime();
                     break;
                 }
                 
+            case WHERE_TO_GO_BACK_CHOSE:
+                lblChoice.setVisible(false);
+                listScroller.setVisible(false);
+
+//                actionName = (String) listChoice.getSelectedValue();
+//                if (actionName.equals("[Unavailable]"))
+//                {
+//                    listChoice.clearSelection();
+//                    setText("You've spent a few minutes doing nothing.");
+//                    break;
+//                }
+
+                actionNum = listChoice.getSelectedIndex();
+
+                lblChoice.setVisible(false);
+                listScroller.setVisible(false);
+
+                listChoice.clearSelection();
+
+                switch (actionNum)
+                {
+                    case 0:
+                        setText("You decided to get back to school on bus.");
+                        nextStage = BACK_TO_SCHOOL_BUS_STOP;
+                    case 1:
+                        setText("You decided to get back to school on foot");
+                        nextStage = BACK_TO_SCHOOL;
+                }
+            break;
+            
+            case BACK_TO_SCHOOL_BUS_STOP:
+                if(busTime>0)
+                {
+                    setText("Sitting on the bench,",
+                            "You're waiting the bus to come.");
+                    passTime();
+                    busTime -= 3;
+                }
+                else
+                {
+                    setText("Finally, you see the bus coming to the stop.",
+                            "You enter it.");
+                    nextStage = SCHOOL_BACK;
+                    
+                    passTime((byte)5);
+                }
+            break;
+            
+            case BACK_TO_SCHOOL:
+                setText("You're going back to school.");
+                passTime((byte)15);
+                nextStage = SCHOOL_BACK;
+            break;
+            
+            case GOING_TO_HOME:
+                setText("You're going to home.");
+                passTime((byte)15);
+                //Forgot keys in school
+                    if(generator.nextInt(100)<7)
+                        nextStage = HOME_LOST_KEYS;
+                    else
+                        nextStage = HOME;
+            
+            case SCHOOL_BACK:
+                setText("You entered the school, took the keys and turned back.");
+                nextStage = WHERE_TO_GO;
             default:
                 setText("Error parsing button. Next text is unavailable, text #" + nextStage);
                 break;
@@ -2595,6 +2672,22 @@ public class ALongHourAndAHalf extends JFrame
                 System.err.println("score() method used incorrectly, message: \"" + message + "\"");
         }
     }
+    
+    String askAction(String... actions)
+    {
+        for(String iAction:actions)
+        {
+            actionList.clear();
+            actionList.add(iAction);
+        }
+        listScroller.setVisible(true);
+        lblChoice.setVisible(true);
+        
+        String selection = null;
+        if(!listChoice.isSelectionEmpty())
+            selection = (String)listChoice.getSelectedValue();
+        return selection;
+    }
 
     enum GameStage
     {
@@ -2641,11 +2734,12 @@ public class ALongHourAndAHalf extends JFrame
         IN_BUS, //In a bus (3 minutes, 5% chance to get stuck in traffic (5 - 25 minutes)
         END_GAME, //Good ending, showing score
         WHERE_TO_GO_CHOSE,
-        MALL_TOILET, //Peeing in mall
         WHERE_TO_GO_MALL, //Failed to pee in mall, going to somewhere else
         WHERE_TO_GO_MALL_CHOSE,
         BUS_STOP, //Waiting for a bus for 3 - 20 minutes
-        WHERE_TO_GO_BACK //Going back to school to take the keys
+        WHERE_TO_GO_BACK, //Going back to school to take the keys
+        WHERE_TO_GO_BACK_CHOSE,
+        SCHOOL_BACK
     }
 
     enum Gender
